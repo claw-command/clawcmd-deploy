@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# ClawCMD - Initial Infrastructure Setup Script
+# Initial Infrastructure Setup Script
 # Main deployment script for the club's main infrastructure
 # 
 # Purpose: First-time setup for new infrastructure or after Proxmox reset
