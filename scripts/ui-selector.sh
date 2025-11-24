@@ -144,9 +144,9 @@ select_template() {
         log_warning "No templates found in ${template_storage}, checking all storages..." >&2
         local all_storages
         if command -v timeout &> /dev/null; then
-            all_storages=$(timeout 5 pvesm status 2>/dev/null | awk 'NR>1 && $2=="active" {print $1}' | grep -v '^$' || echo "")
+            all_storages=$(timeout 5 pvesm status 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}' | grep -v '^$' || echo "")
         else
-            all_storages=$(pvesm status 2>/dev/null | awk 'NR>1 && $2=="active" {print $1}' | grep -v '^$' || echo "")
+            all_storages=$(pvesm status 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}' | grep -v '^$' || echo "")
         fi
         
         while IFS= read -r storage; do
@@ -321,17 +321,17 @@ select_storage_pool() {
     
     # Method 1: Try pvesm status with timeout (most reliable)
     if command -v timeout &> /dev/null; then
-        storage_pools=$(timeout 5 pvesm status 2>/dev/null | awk 'NR>1 && $2=="active" {print $1}' | grep -vE "^(vztmpl|iso)$" | grep -v '^$' || echo "")
+        storage_pools=$(timeout 5 pvesm status 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}' | grep -vE "^(vztmpl|iso)$" | grep -v '^$' || echo "")
     else
-        storage_pools=$(pvesm status 2>/dev/null | awk 'NR>1 && $2=="active" {print $1}' | grep -vE "^(vztmpl|iso)$" | grep -v '^$' || echo "")
+        storage_pools=$(pvesm status 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}' | grep -vE "^(vztmpl|iso)$" | grep -v '^$' || echo "")
     fi
     
     # Method 2: If pvesm fails, try pvesh API (ProxmoxVE pattern)
     if [[ -z "$storage_pools" ]] && command -v pvesh &> /dev/null; then
         if command -v timeout &> /dev/null; then
-            storage_pools=$(timeout 5 pvesh get /storage 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -vE "^(vztmpl|iso)$" || echo "")
+            storage_pools=$(timeout 5 pvesh get /storage --output-format json 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -vE "^(vztmpl|iso)$" || echo "")
         else
-            storage_pools=$(pvesh get /storage 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -vE "^(vztmpl|iso)$" || echo "")
+            storage_pools=$(pvesh get /storage --output-format json 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -vE "^(vztmpl|iso)$" || echo "")
         fi
     fi
     
@@ -590,17 +590,17 @@ select_template_storage() {
     
     # Method 1: Try pvesm status with timeout
     if command -v timeout &> /dev/null; then
-        storage_pools=$(timeout 5 pvesm status 2>/dev/null | awk 'NR>1 && $2=="active" {print $1}' | grep -v '^$' || echo "")
+        storage_pools=$(timeout 5 pvesm status 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}' | grep -v '^$' || echo "")
     else
-        storage_pools=$(pvesm status 2>/dev/null | awk 'NR>1 && $2=="active" {print $1}' | grep -v '^$' || echo "")
+        storage_pools=$(pvesm status 2>/dev/null | awk 'NR>1 && $3=="active" {print $1}' | grep -v '^$' || echo "")
     fi
     
     # Method 2: If pvesm fails, try pvesh API
     if [[ -z "$storage_pools" ]] && command -v pvesh &> /dev/null; then
         if command -v timeout &> /dev/null; then
-            storage_pools=$(timeout 5 pvesh get /storage 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -v '^$' || echo "")
+            storage_pools=$(timeout 5 pvesh get /storage --output-format json 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -v '^$' || echo "")
         else
-            storage_pools=$(pvesh get /storage 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -v '^$' || echo "")
+            storage_pools=$(pvesh get /storage --output-format json 2>/dev/null | grep -oP '"storage":\s*"\K[^"]+' | grep -v '^$' || echo "")
         fi
     fi
     
